@@ -1,20 +1,18 @@
 import sublime, sublime_plugin
-from os.path import relpath
+import os
+from os.path import commonprefix, relpath
 
 class CopyRelativePathCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         filename = self.view.file_name()
         if len(filename) > 0:
-            # Copy shortest relpath for file compared to open folders
-            sublime.set_clipboard(
-                min(
-                    (
-                        relpath(filename, folder)
-                        for folder in sublime.active_window().folders()
-                    ),
-                    key=len,
-                )
-            )
+            # The shortest relpath for file compared to open folders
+            rel_path = min((relpath(filename, folder) for folder in sublime.active_window().folders()), key=len)
+            
+            if os.sep != '/':
+                rel_path = rel_path.replace(os.sep, '/')
+            
+            sublime.set_clipboard(rel_path)
             sublime.status_message("Copied relative path")
 
     def is_enabled(self):
